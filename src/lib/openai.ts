@@ -44,34 +44,40 @@ export const generateQuestionsWithAI = async (
   count: number,
   customApiKey?: string
 ): Promise<Question[]> => {
-  const apiKey = customApiKey || getSecureApiKey() || import.meta.env.VITE_OPENAI_API_KEY || '';
+  const apiKey =
+    customApiKey ||
+    getSecureApiKey() ||
+    import.meta.env.VITE_CHATGPT_API_KEY ||
+    import.meta.env.VITE_OPENAI_API_KEY ||
+    '';
 
   if (apiKey && apiKey.startsWith('sk-')) {
     try {
       const openai = new OpenAI({
         apiKey: apiKey,
-        dangerouslyAllowBrowser: true
+        dangerouslyAllowBrowser: true,
       });
 
-      const prompt = `Generate ${count} high-quality, multiple-choice questions for the subject "${subject}" at "${difficulty}" difficulty.
-Format as strict JSON array:
+      const seed = Math.floor(Math.random() * 10000);
+      const prompt = `"${subject}" mavzusida va "${difficulty}" qiyinchilik darajasida ${count} ta ko'p variantli (multiple-choice) qiziqarli test savollarini hamda javoblarni strictly O'ZBEK TILIDA yaratib ber (Tasodifiy urug': ${seed}).
+Format STRICT JSON array:
 [
   {
     "id": "q1",
-    "question": "Question text?",
-    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "question": "Savol matni O'zbek tilida?",
+    "options": ["Variant A O'zbekcha", "Variant B O'zbekcha", "Variant C O'zbekcha", "Variant D O'zbekcha"],
     "correctAnswer": 0,
-    "explanation": "Brief solution explanation."
+    "explanation": "Qisqa tushuntirish O'zbek tilida."
   }
 ]`;
 
       const response = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You return only JSON arrays of quiz questions. No markdown wrap.' },
+          { role: 'system', content: 'You return only valid JSON arrays of quiz questions in Uzbek. No markdown code blocks.' },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.7,
+        temperature: 0.85,
       });
 
       const content = response.choices[0]?.message?.content || '';
@@ -80,7 +86,7 @@ Format as strict JSON array:
 
       return validateQuestions(parsed, count);
     } catch (err: unknown) {
-      console.warn('OpenAI API request failed, falling back to secondary generator engine:', err);
+      console.warn('OpenAI API soʻrovi muvaffaqiyatsiz boʻldi, ikkinchi AI motoriga oʻtildi:', err);
     }
   }
 

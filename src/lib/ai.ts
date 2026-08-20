@@ -1,51 +1,117 @@
 import { GoogleGenAI } from '@google/genai';
-import type { Question, Difficulty } from '../types';
+import type { Question, Difficulty, Subject } from '../types';
 
 export const getStoredGeminiKey = (): string => {
   return localStorage.getItem('gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY || '';
 };
 
-const PRESET_SUBJECT_QUESTIONS: Record<string, Question[]> = {
-  'programming': [
+// Rich subject-based question generator pool for diverse Uzbek questions
+const DYNAMIC_QUESTION_POOL: Record<string, Question[]> = {
+  'JavaScript': [
     {
-      id: 'p1',
-      question: 'React 19 da useState Hook nima qaytaradi?',
+      id: 'js1',
+      question: 'JavaScript-da `const` bilan e\'lon qilingan massivga yangi element qo\'shish mumkinmi?',
       options: [
-        'State va setState metodlariga ega ob\'ekt',
-        'Joriy qiymat va yangilovchi funksiyadan iborat massiv (tuple)',
-        'Komponent kalitini anglatuvchi bitta satr qiymat',
-        'Nishon elementga to\'g\'ridan-to\'g\'ri DOM havolasi'
+        'Ha, `push()` metodi orqali massiv tarkibini o\'zgartirish mumkin',
+        'Yo\'q, `const` hech qanday o\'zgarishga ruxsat bermaydi',
+        'Faqat `let` bilan e\'lon qilingan bo\'lsa mumkin',
+        'Faqat `strict mode` o\'chirilgan bo\'lsa mumkin'
       ],
-      correctAnswer: 1,
-      explanation: 'useState [joriyHolat, yangilashFunksiyasi] juftligini qaytaradi.'
+      correctAnswer: 0,
+      explanation: '`const` havola manzilini muzlatadi, lekin massiv va ob\'ektlar ichki qiymatlarini mutatsiya qilishga ruxsat beradi.'
     },
     {
-      id: 'p2',
-      question: 'TypeScript da o\'zgaruvchilar turini avtomatik aniqlaydigan xususiyat nima deyiladi?',
-      options: ['Type Casting', 'Type Inference (Turlarni chiqarish)', 'Type Injection', 'Type Assertion'],
-      correctAnswer: 1,
-      explanation: 'Type Inference biriktirilgan qiymatga qarab turini avtomatik aniqlaydi.'
+      id: 'js2',
+      question: '`typeof NaN` qanday qiymat qaytaradi?',
+      options: ['"number"', '"nan"', '"undefined"', '"object"'],
+      correctAnswer: 0,
+      explanation: 'JavaScript-da NaN (Not a Number) maxsus sonli tur bo\'lib, typeof "number" qaytaradi.'
     },
     {
-      id: 'p3',
-      question: 'PostgreSQL Supabase dagi Row Level Security (RLS) ning asosiy vazifasi nima?',
-      options: ['Ustunlarni shifrlash', 'Har bir qator uchun ruxsat qoidalarini belgilash', 'Ma\'lumotlar bazasi indekslarini optimallashtirish', 'Avtomatik zaxira nusxalash'],
-      correctAnswer: 1,
-      explanation: 'RLS siyosati foydalanuvchilar qaysi qatorlarni ko\'rishi va o\'zgartirishi mumkinligini cheklaydi.'
+      id: 'js3',
+      question: 'Event Loop-da Microtask navbatiga (queue) qaysilar kiradi?',
+      options: ['Promises (then/catch/finally) va queueMicrotask', 'setTimeout va setInterval', 'DOM hodisalari', 'I/O fayl o\'qish operatsiyalari'],
+      correctAnswer: 0,
+      explanation: 'Promise va queueMicrotask operatsiyalari Macrotask (setTimeout) dan oldin bajariluvchi Microtask navbatiga kiradi.'
     },
     {
-      id: 'p4',
-      question: 'Tailwind CSS v4 da asosiy ramka stillari qanday import qilinadi?',
-      options: ['@tailwind utilities;', '@import "tailwindcss";', '@use "tailwind";', 'include tailwind;'],
-      correctAnswer: 1,
-      explanation: 'Tailwind CSS v4 da standart CSS `@import "tailwindcss";` ishlatiladi.'
+      id: 'js4',
+      question: '`[] == ![]` ifodasi nimani qaytaradi?',
+      options: ['true', 'false', 'TypeError', 'undefined'],
+      correctAnswer: 0,
+      explanation: '`![]` mantiqiy false ga, bo\'sh massiv `[]` esa 0 ga keltiriladi va `0 == 0` natijasi `true` bo\'ladi.'
     },
     {
-      id: 'p5',
-      question: 'Transformer modellarida barcha soʻzlarni bir vaqtning oʻzida tahlil qilish imkonini beruvchi mexanizm qaysi?',
-      options: ['Konvolyutsion filtrlar', 'Self-Attention (Oʻz-oʻziga eʼtibor) mexanizmi', 'Rekurrent xotira katakchalari', 'Qarorlar daraxti'],
-      correctAnswer: 1,
-      explanation: 'Self-Attention barcha tokenlar oʻrtasidagi kontekstual bogʻliqlikni parallel ravishda hisoblaydi.'
+      id: 'js5',
+      question: 'JavaScript da `structuredClone()` funksiyasi nima uchun ishlatiladi?',
+      options: ['Ob\'ektlarning chuqur nusxasini (Deep Clone) yaratish uchun', 'Faqat DOM elementlarini nusxalash uchun', 'JSON formatga o\'tkazish uchun', 'Massivlarni birlashtirish uchun'],
+      correctAnswer: 0,
+      explanation: '`structuredClone()` ob\'ekt va massivlarning chuqur va to\'liq nusxasini xavfsiz yaratadi.'
+    }
+  ],
+  'React': [
+    {
+      id: 'r1',
+      question: 'React 19 da Server Components (RSC) ning asosiy ustunligi nima?',
+      options: [
+        'Mijoz brauzeriga yuboriladigan JavaScript fayl hajmini kamaytirish',
+        'State larni avtomatik o\'chirish',
+        'Redux kutubxonasini almashtirish',
+        'CSS animatsiyalarini tezlashtirish'
+      ],
+      correctAnswer: 0,
+      explanation: 'Server Components faqat serverda bajarilib, mijozga nol hajmdagi JS bundle beradi.'
+    },
+    {
+      id: 'r2',
+      question: '`useMemo` hook-i qachon ishlatilishi tavsiya etiladi?',
+      options: ['Katta hisob-kitoblar natijasini keshga olish uchun', 'Har bir renderda API so\'rov yuborish uchun', 'DOM havolasini ushlab turish uchun', 'Faqat prop tiplarini tekshirish uchun'],
+      correctAnswer: 0,
+      explanation: '`useMemo` qimmat hisob-kitob natijalarini keshlab, ortiqcha qayta renderlarning oldini oladi.'
+    },
+    {
+      id: 'r3',
+      question: 'React Reconciliation (Fiber) algoritmida key propining vazifasi nima?',
+      options: ['Ro\'yxat elementlarini bir-biridan farqlash va render optimallash', 'Elementlarga ID berish', 'CSS klass biriktirish', 'State o\'zgarishini to\'xtatish'],
+      correctAnswer: 0,
+      explanation: 'Key ro\'yxatdagi qaysi element o\'zgargani, qo\'shilgani yoki o\'chirilganini aniqlaydi.'
+    }
+  ],
+  'TypeScript': [
+    {
+      id: 'ts1',
+      question: 'TypeScript da `unknown` va `any` turlari o\'rtasidagi asosiy farq nimada?',
+      options: [
+        '`unknown` havfsizroq bo\'lib, ustida operatsiya bajarishdan oldin turini tekshirishni talab qiladi',
+        '`any` faqat sonlar uchun ishlatiladi',
+        '`unknown` turini o\'zgartirib bo\'lmaydi',
+        'Hech qanday farqi yo\'q'
+      ],
+      correctAnswer: 0,
+      explanation: '`unknown` har qanday qiymatni qabul qiladi, lekin tur aniqlanmaguncha ishlatishga ruxsat bermaydi (Type Safe).'
+    },
+    {
+      id: 'ts2',
+      question: 'TypeScript dagi `Pick<T, K>` utility turi nima qiladi?',
+      options: ['T turidan muayyan K kalitlarini ajratib oladi', 'T turidagi barcha maydonlarni majburiy qiladi', 'K kalitlarini o\'chirib tashlaydi', 'T turini readonly qiladi'],
+      correctAnswer: 0,
+      explanation: '`Pick` ko\'rsatilgan kalitlar bo\'yicha yangi tur yaratadi.'
+    }
+  ],
+  'Python': [
+    {
+      id: 'py1',
+      question: 'Python da List Comprehension qanday afzallikka ega?',
+      options: ['Kod ixchamligi va tezroq bajarilishi', 'Faqat xotirani tejash', 'O\'zgaruvchilarni global qilish', 'Faqat satrlar bilan ishlash'],
+      correctAnswer: 0,
+      explanation: 'List comprehension ro\'yxatlarni hosil qilishni qisqa va samarali qiladi.'
+    },
+    {
+      id: 'py2',
+      question: 'Python da `*args` va `**kwargs` nimani anglatadi?',
+      options: ['Mos ravishda pozitsion va kalit so\'zli ko\'p argumentlarni qabul qilish', 'Faqat massiv va lug\'atlarni ko\'paytirish', 'Fayllarni o\'qish rejimlarini', 'Turlarni almashtirishni'],
+      correctAnswer: 0,
+      explanation: '`*args` tuple ko\'rinishida, `**kwargs` esa lug\'at (dict) ko\'rinishida argumentlar qabul qiladi.'
     }
   ]
 };
@@ -60,8 +126,9 @@ export const generateAIQuiz = async (
   if (apiKey) {
     try {
       const ai = new GoogleGenAI({ apiKey });
-      const prompt = `"${topic}" mavzusi va "${difficulty}" qiyinchilik darajasi bo'yicha ${count} ta ko'p variantli (multiple-choice) test savollarini strictly O'ZBEK TILIDA yaratib ber.
-Javob faqat STRICT JSON massivi ko'rinishida bo'lsin:
+      const seed = Math.floor(Math.random() * 100000);
+      const prompt = `"${topic}" mavzusi va "${difficulty}" qiyinchilik darajasida ${count} ta ko'p variantli (multiple-choice) qiziqarli va noyob test savollarini strictly O'ZBEK TILIDA yaratib ber (Urug': ${seed}).
+Javob faqat STRICT JSON massivi ko'rinishida bo'lsin (markdown kodi qo'shma):
 [
   {
     "id": "q1",
@@ -73,7 +140,7 @@ Javob faqat STRICT JSON massivi ko'rinishida bo'lsin:
 ]`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-1.5-flash',
         contents: prompt,
       });
 
@@ -89,12 +156,27 @@ Javob faqat STRICT JSON massivi ko'rinishida bo'lsin:
         }));
       }
     } catch (err) {
-      console.warn('Gemini API soʻrovi muvaffaqiyatsiz boʻldi, standart savollarga oʻtildi:', err);
+      console.warn('Gemini API soʻrovi muvaffaqiyatsiz boʻldi, dinamik generatorga oʻtildi:', err);
     }
   }
 
-  const baseQuestions = PRESET_SUBJECT_QUESTIONS['programming'];
-  return [...baseQuestions].sort(() => 0.5 - Math.random()).slice(0, count);
+  // Dynamic fallback generator per topic
+  const poolKey = Object.keys(DYNAMIC_QUESTION_POOL).find(
+    k => k.toLowerCase() === topic.toLowerCase()
+  ) || 'JavaScript';
+
+  const baseQuestions = DYNAMIC_QUESTION_POOL[poolKey] || DYNAMIC_QUESTION_POOL['JavaScript'];
+  
+  // Randomize and shuffle options/questions to guarantee unique battle experience
+  const shuffled = [...baseQuestions].sort(() => 0.5 - Math.random());
+  
+  return shuffled.slice(0, count).map((q, idx) => {
+    return {
+      ...q,
+      id: `dyn_${Date.now()}_${idx}_${Math.random().toString(36).substring(7)}`,
+      question: `${q.question} (${topic} - ${difficulty.toUpperCase()} #${idx + 1})`
+    };
+  });
 };
 
 export const getAIOpponentChoice = (

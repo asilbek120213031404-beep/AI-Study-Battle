@@ -6,16 +6,20 @@ import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import type { Question } from '../types';
 import { sound } from '../lib/sound';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 export const ResultPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const state = location.state as {
     playerScore?: number;
     opponentScore?: number;
     totalQuestions?: number;
     questions?: Question[];
+    subject?: string;
   } || {};
 
   const playerScore = state.playerScore ?? 2850;
@@ -33,7 +37,37 @@ export const ResultPage: React.FC = () => {
     } else {
       sound.defeat();
     }
-  }, [isWinner]);
+
+    // Persist battle result & user stats in Supabase Database
+    const persistResult = async () => {
+      if (!user?.id || !supabase) return;
+
+      try {
+        const { data: currentStats } = await supabase
+          .from('user_stats')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (currentStats) {
+          await supabase
+            .from('user_stats')
+            .update({
+              battles_played: (currentStats.battles_played || 0) + 1,
+              wins: (currentStats.wins || 0) + (isWinner ? 1 : 0),
+              losses: (currentStats.losses || 0) + (isWinner ? 0 : 1),
+              total_score: (currentStats.total_score || 0) + playerScore,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('user_id', user.id);
+        }
+      } catch (err) {
+        console.warn('Error saving battle results to Supabase:', err);
+      }
+    };
+
+    persistResult();
+  }, [isWinner, playerScore, user?.id]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 transition-colors">
@@ -46,7 +80,7 @@ export const ResultPage: React.FC = () => {
           </div>
 
           <span className="px-3.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold text-xs border border-blue-500/20 inline-block mb-3">
-            BELLASHUV YAKUNLANDI
+            BELLASHUV YAKUNLANDI ({state.subject || 'AI Test'})
           </span>
 
           <h1 className="font-outfit font-black text-4xl sm:text-6xl text-slate-900 dark:text-white mb-2">
@@ -76,11 +110,15 @@ export const ResultPage: React.FC = () => {
           <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto mb-8 text-center text-xs">
             <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
               <span className="text-slate-400 block mb-1">Aniqlik</span>
-              <strong className="text-slate-900 dark:text-white font-bold text-base">90%</strong>
+              <strong className="text-slate-900 dark:text-white font-bold text-base">
+                {Math.round((playerScore / (playerScore + 500 || 1)) * 100)}%
+              </strong>
             </div>
             <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-              <span className="text-slate-400 block mb-1">To'g'ri Javoblar</span>
-              <strong className="text-emerald-500 font-bold text-base">4 / 5</strong>
+              <span className="text-slate-400 block mb-1">Status</span>
+              <strong className="text-emerald-500 font-bold text-base">
+                {isWinner ? 'G\'alaba' : 'Mag\'lubiyat'}
+              </strong>
             </div>
             <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
               <span className="text-slate-400 block mb-1">O'rtacha Vaqt</span>
