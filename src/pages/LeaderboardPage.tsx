@@ -2,18 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { Trophy, Search } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
-import { fetchLeaderboardData } from '../lib/supabase';
+import { getLeaderboard } from '../services/statsService';
 import type { LeaderboardEntry } from '../types';
 
 export const LeaderboardPage: React.FC = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [search, setSearch] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    fetchLeaderboardData().then(setLeaderboard);
+    let isMounted = true;
+    getLeaderboard(50).then((data) => {
+      if (isMounted) {
+        setLeaderboard(data);
+        setLoading(false);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const filtered = leaderboard.filter(p => p.displayName.toLowerCase().includes(search.toLowerCase()));
+  const filtered = leaderboard.filter((p) =>
+    p.displayName.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 transition-colors">
@@ -57,52 +69,66 @@ export const LeaderboardPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
-                {filtered.map((player) => (
-                  <tr key={player.userId} className="hover:bg-slate-100/50 dark:hover:bg-slate-900/50 transition-colors">
-                    <td className="py-4 px-6 font-outfit font-extrabold">
-                      <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg font-bold text-xs ${
-                        player.rank === 1 
-                          ? 'bg-amber-500 text-white shadow-md' 
-                          : player.rank === 2
-                          ? 'bg-slate-400 text-white'
-                          : player.rank === 3
-                          ? 'bg-amber-700 text-white'
-                          : 'text-slate-500 dark:text-slate-400'
-                      }`}>
-                        #{player.rank}
-                      </span>
-                    </td>
-
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={player.avatarUrl}
-                          alt={player.displayName}
-                          className="w-9 h-9 rounded-xl object-cover"
-                        />
-                        <span className="font-outfit font-bold text-slate-900 dark:text-white">
-                          {player.displayName}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="py-4 px-6 text-center font-bold text-emerald-600 dark:text-emerald-400">
-                      {player.wins}
-                    </td>
-
-                    <td className="py-4 px-6 text-center font-semibold text-slate-600 dark:text-slate-300">
-                      {player.battles}
-                    </td>
-
-                    <td className="py-4 px-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                      {player.winRate}%
-                    </td>
-
-                    <td className="py-4 px-6 text-right font-mono-code font-bold text-purple-600 dark:text-purple-400">
-                      {player.totalPoints.toLocaleString()}
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+                      Reyting ma'lumotlari Supabase'dan yuklanmoqda...
                     </td>
                   </tr>
-                ))}
+                ) : filtered.length > 0 ? (
+                  filtered.map((player) => (
+                    <tr key={player.userId} className="hover:bg-slate-100/50 dark:hover:bg-slate-900/50 transition-colors">
+                      <td className="py-4 px-6 font-outfit font-extrabold">
+                        <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg font-bold text-xs ${
+                          player.rank === 1 
+                            ? 'bg-amber-500 text-white shadow-md' 
+                            : player.rank === 2
+                            ? 'bg-slate-400 text-white'
+                            : player.rank === 3
+                            ? 'bg-amber-700 text-white'
+                            : 'text-slate-500 dark:text-slate-400'
+                        }`}>
+                          #{player.rank}
+                        </span>
+                      </td>
+
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={player.avatarUrl}
+                            alt={player.displayName}
+                            className="w-9 h-9 rounded-xl object-cover"
+                          />
+                          <span className="font-outfit font-bold text-slate-900 dark:text-white">
+                            {player.displayName}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="py-4 px-6 text-center font-bold text-emerald-600 dark:text-emerald-400">
+                        {player.wins}
+                      </td>
+
+                      <td className="py-4 px-6 text-center font-semibold text-slate-600 dark:text-slate-300">
+                        {player.battles}
+                      </td>
+
+                      <td className="py-4 px-6 text-center font-bold text-blue-600 dark:text-blue-400">
+                        {player.winRate}%
+                      </td>
+
+                      <td className="py-4 px-6 text-right font-mono-code font-bold text-purple-600 dark:text-purple-400">
+                        {player.totalPoints.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+                      Hech qanday o'yinchi topilmadi.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

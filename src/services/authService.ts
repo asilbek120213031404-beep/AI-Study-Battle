@@ -23,6 +23,7 @@ export const signInWithGoogle = async (): Promise<void> => {
     provider: 'google',
     options: {
       redirectTo: `https://aistudybattle.vercel.app`,
+      // redirectTo: `http://localhost:5173`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
