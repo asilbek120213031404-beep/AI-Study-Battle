@@ -100,11 +100,10 @@ export const CreateBattlePage: React.FC = () => {
                       sound.click();
                       setSubject(s);
                     }}
-                    className={`py-3 px-3.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between border ${
-                      subject === s
+                    className={`py-3 px-3.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between border ${subject === s
                         ? 'bg-blue-600 text-white border-blue-500 shadow-md'
                         : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-500/50'
-                    }`}
+                      }`}
                   >
                     <span>{s}</span>
                     {subject === s && <Sparkles className="w-3.5 h-3.5 text-white" />}
@@ -126,15 +125,14 @@ export const CreateBattlePage: React.FC = () => {
                       sound.click();
                       setDifficulty(d);
                     }}
-                    className={`py-3 px-4 rounded-xl text-xs font-bold capitalize transition-all border ${
-                      difficulty === d
-                        ? d === 'easy' 
+                    className={`py-3 px-4 rounded-xl text-xs font-bold capitalize transition-all border ${difficulty === d
+                        ? d === 'easy'
                           ? 'bg-emerald-600 text-white border-emerald-500'
                           : d === 'medium'
-                          ? 'bg-blue-600 text-white border-blue-500'
-                          : 'bg-purple-600 text-white border-purple-500'
+                            ? 'bg-blue-600 text-white border-blue-500'
+                            : 'bg-purple-600 text-white border-purple-500'
                         : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
-                    }`}
+                      }`}
                   >
                     {d === 'easy' ? 'Oson' : d === 'medium' ? 'O\'rta' : 'Qiyin'}
                   </button>
@@ -156,11 +154,10 @@ export const CreateBattlePage: React.FC = () => {
                         sound.click();
                         setQuestionCount(c);
                       }}
-                      className={`py-2.5 px-2 rounded-xl text-xs font-bold border ${
-                        questionCount === c
+                      className={`py-2.5 px-2 rounded-xl text-xs font-bold border ${questionCount === c
                           ? 'bg-blue-600 text-white border-blue-500'
                           : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
-                      }`}
+                        }`}
                     >
                       {c}
                     </button>
@@ -181,11 +178,10 @@ export const CreateBattlePage: React.FC = () => {
                         sound.click();
                         setTimePerQuestion(t);
                       }}
-                      className={`py-2.5 px-2 rounded-xl text-xs font-bold border ${
-                        timePerQuestion === t
+                      className={`py-2.5 px-2 rounded-xl text-xs font-bold border ${timePerQuestion === t
                           ? 'bg-blue-600 text-white border-blue-500'
                           : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
-                      }`}
+                        }`}
                     >
                       {t}s
                     </button>

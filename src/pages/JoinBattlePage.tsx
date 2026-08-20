@@ -35,7 +35,7 @@ export const JoinBattlePage: React.FC = () => {
       <Navbar />
 
       <main className="flex-grow max-w-md mx-auto px-4 py-12 w-full">
-        
+
         <button
           onClick={() => {
             sound.click();
@@ -48,7 +48,7 @@ export const JoinBattlePage: React.FC = () => {
         </button>
 
         <div className="glass-panel rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-2xl text-center">
-          
+
           <div className="w-14 h-14 rounded-2xl bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center mx-auto mb-6">
             <KeyRound className="w-7 h-7" />
           </div>

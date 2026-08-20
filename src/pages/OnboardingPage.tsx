@@ -8,7 +8,7 @@ import { sound } from '../lib/sound';
 export const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
   const { updateUserProfile } = useAuth();
-  
+
   const existingKey = getSecureApiKey();
   const [apiKeyInput, setApiKeyInput] = useState<string>('');
   const [showKey, setShowKey] = useState<boolean>(false);
@@ -140,7 +140,7 @@ export const OnboardingPage: React.FC = () => {
               API Kalitni Saqlash
               <ArrowRight className="w-4 h-4" />
             </button>
-            
+
             <button
               type="button"
               onClick={() => {

@@ -18,10 +18,11 @@ export const signInWithGoogle = async (): Promise<void> => {
     );
   }
 
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `https://aistudybattle.vercel.app/home`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
