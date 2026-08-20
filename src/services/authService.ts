@@ -22,7 +22,7 @@ export const signInWithGoogle = async (): Promise<void> => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `https://aistudybattle.vercel.app/home`,
+      redirectTo: `https://aistudybattle.vercel.app`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
