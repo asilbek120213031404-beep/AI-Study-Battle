@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import type { Question, Difficulty, Subject } from '../types';
+import type { Question, Difficulty } from '../types';
 
 export const getStoredGeminiKey = (): string => {
   return localStorage.getItem('gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY || '';
@@ -166,10 +166,10 @@ Javob faqat STRICT JSON massivi ko'rinishida bo'lsin (markdown kodi qo'shma):
   ) || 'JavaScript';
 
   const baseQuestions = DYNAMIC_QUESTION_POOL[poolKey] || DYNAMIC_QUESTION_POOL['JavaScript'];
-  
+
   // Randomize and shuffle options/questions to guarantee unique battle experience
   const shuffled = [...baseQuestions].sort(() => 0.5 - Math.random());
-  
+
   return shuffled.slice(0, count).map((q, idx) => {
     return {
       ...q,
