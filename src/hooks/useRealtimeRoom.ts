@@ -264,7 +264,7 @@ export const useRealtimeRoom = (initialRoomCode?: string) => {
       try {
         await joinRoomRPC(cleanCode);
       } catch (dbErr: any) {
-        console.warn('Supabase DB join_room RPC notice:', dbErr.message);
+        console.error('Supabase DB ulanish xatosi (create_room):', dbErr.message || dbErr);
       }
     }
 
